@@ -16,6 +16,21 @@ The full sequence:
 2. Launch `Setup - AAP - CAC` from AAP
 3. Monitor and report job status
 
+## AAP API Paths (2.5+)
+
+AAP 2.5+ uses a gateway architecture. Always use these base paths:
+
+| Purpose | Base path |
+|---------|-----------|
+| Token create/delete | `$CONTROLLER_HOST/api/gateway/v1/tokens/` |
+| Job templates | `$CONTROLLER_HOST/api/controller/v2/job_templates/` |
+| Jobs | `$CONTROLLER_HOST/api/controller/v2/jobs/` |
+
+Verify the API layout first if unsure:
+```bash
+curl -s -k "$CONTROLLER_HOST/api/" | python3 -m json.tool
+```
+
 ## Steps 1–6: Bootstrap First
 
 Follow all steps from the `/aap-bootstrap` skill exactly (credential resolution, inventory generation, playbook execution).
@@ -26,40 +41,46 @@ Do not proceed to Step 7 until the bootstrap playbook exits successfully.
 
 After a successful bootstrap, launch the job template via the AAP API.
 
-First, create a session token:
+First, create a session token via the gateway:
 ```bash
-curl -s -k -u admin:$CONTROLLER_PASSWORD \
-  -X POST "$CONTROLLER_HOST/api/v2/tokens/" \
+TOKEN_JSON=$(curl -s -k -X POST \
   -H "Content-Type: application/json" \
-  -d '{"description":"setup-demo token","scope":"write"}' \
-  | python3 -m json.tool
+  -u admin:$CONTROLLER_PASSWORD \
+  "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
+  -d '{"description":"setup-demo token","scope":"write"}')
+
+TOKEN=$(echo $TOKEN_JSON | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['token'])")
+TOKEN_ID=$(echo $TOKEN_JSON | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
 ```
 
-Save the token value, then launch the job template by name:
+Get the job template ID and launch it:
 ```bash
 # Get the job template ID
-curl -s -k -H "Authorization: Bearer <token>" \
-  "$CONTROLLER_HOST/api/v2/job_templates/?name=Setup+-+AAP+-+CAC" \
-  | python3 -c "import sys,json; data=json.load(sys.stdin); print(data['results'][0]['id'])"
+JT_ID=$(curl -s -k \
+  -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/job_templates/?name=Setup+-+AAP+-+CAC" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['results'][0]['id'])")
 
 # Launch it
-curl -s -k -H "Authorization: Bearer <token>" \
-  -X POST "$CONTROLLER_HOST/api/v2/job_templates/<id>/launch/" \
+JOB_ID=$(curl -s -k \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  | python3 -m json.tool
+  -X POST "$CONTROLLER_HOST/api/controller/v2/job_templates/$JT_ID/launch/" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 ```
 
 Show the job URL to the user:
 ```
-$CONTROLLER_HOST/#/jobs/<job_id>/output
+$CONTROLLER_HOST/#/jobs/$JOB_ID/output
 ```
 
 ## Step 8 — Monitor the Job
 
 Poll the job status every 15 seconds:
 ```bash
-curl -s -k -H "Authorization: Bearer <token>" \
-  "$CONTROLLER_HOST/api/v2/jobs/<job_id>/" \
+curl -s -k \
+  -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/jobs/$JOB_ID/" \
   | python3 -c "import sys,json; j=json.load(sys.stdin); print(j['status'], j.get('finished','running'))"
 ```
 
@@ -69,8 +90,9 @@ Report status updates to the user. Stop polling when status is `successful` or `
 
 Always delete the session token after the job completes or fails:
 ```bash
-curl -s -k -H "Authorization: Bearer <token>" \
-  -X DELETE "$CONTROLLER_HOST/api/v2/tokens/<token_id>/"
+curl -s -k -X DELETE \
+  -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/gateway/v1/tokens/$TOKEN_ID/"
 ```
 
 ## Step 10 — Report Results
