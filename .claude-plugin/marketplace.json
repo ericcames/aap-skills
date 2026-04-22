@@ -1,0 +1,23 @@
+{
+  "name": "aap-skills",
+  "owner": {
+    "name": "Eric Ames",
+    "email": "ericcames@msn.com"
+  },
+  "metadata": {
+    "description": "Claude Code skills for bootstrapping and demoing Ansible Automation Platform instances from RHDP",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "aap-skills",
+      "description": "Skills for bootstrapping and demoing Ansible Automation Platform (AAP) instances provisioned from the Red Hat Demo Platform (RHDP)",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/aap-bootstrap",
+        "./skills/aap-setup-demo"
+      ]
+    }
+  ]
+}
