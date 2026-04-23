@@ -145,6 +145,18 @@ ansible-playbook -i inventories/rhdp-<customer>-<demo>/ playbooks/bootstrap_dev.
 
 Show the command to the user before running it and ask for confirmation.
 
+### Interpreting playbook output
+
+The bootstrap modules use `state: present` and are fully idempotent. Interpret the output as follows:
+
+| Result | Meaning | Action |
+|--------|---------|--------|
+| `ok` | Object already exists and is correct | Continue — this is not a warning |
+| `changed` | Object was created or updated | Continue |
+| `failed` | Real error | Stop and report the error |
+
+If the playbook was previously interrupted and is being re-run, it will skip objects that already exist (`ok`) and only create what is missing (`changed`). This is expected and correct — do not treat a mix of `ok` and `changed` as a problem.
+
 ## Step 6 — Report Results
 
 ### On success
