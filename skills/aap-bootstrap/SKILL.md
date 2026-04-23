@@ -18,6 +18,37 @@ A bootstrap provisions these objects on a fresh AAP instance:
 
 When bootstrap completes the AAP instance is ready but no demo has been configured yet. To configure the demo, run `/aap-setup-demo`.
 
+## Preflight Check
+
+Before doing anything else, verify all local prerequisites are in place:
+
+```bash
+# ansible.cfg with Hub token
+grep -q "galaxy_server.rh_certified" ~/.ansible/ansible.cfg 2>/dev/null && \
+  grep -v "PASTE_YOUR_TOKEN_HERE" ~/.ansible/ansible.cfg | grep -q "token=" && \
+  echo "✅ ansible.cfg" || echo "❌ ansible.cfg"
+
+# secrets2
+test -s ~/.ansible/secrets2 && echo "✅ secrets2" || echo "❌ secrets2"
+
+# collections
+test -d ./collections/ansible_collections/ansible/platform && \
+  echo "✅ ansible.platform" || echo "❌ ansible.platform"
+
+test -d ./collections/ansible_collections/ansible/controller && \
+  echo "✅ ansible.controller" || echo "❌ ansible.controller"
+```
+
+If any check fails, stop immediately and tell the user:
+
+```
+❌ Prerequisites missing: <list each failing item>
+
+Run /aap-first-time to set up these prerequisites before bootstrapping.
+```
+
+Do not proceed to Step 1 until all checks pass.
+
 ## Step 1 — Identify the Environment
 
 Ask the user for two values to name the inventory:
