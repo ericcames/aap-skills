@@ -15,6 +15,7 @@
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/aap-first-time",
         "./skills/aap-bootstrap",
         "./skills/aap-setup-demo"
       ]

@@ -6,6 +6,7 @@ Claude Code skills for bootstrapping and demoing Ansible Automation Platform (AA
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
+| aap-first-time | `/aap-first-time` | First-time local setup — walks through every prerequisite interactively and validates each one. Run this once on a new machine before using the other skills. |
 | aap-bootstrap | `/aap-bootstrap` | Bootstrap a fresh AAP instance — creates Hub credentials, Vault credential, project, and job template. Stops when AAP is ready. |
 | aap-setup-demo | `/aap-setup-demo` | Bootstrap AAP **and** run `Setup - AAP - CAC` as a live demo story for a customer. |
 
