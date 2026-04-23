@@ -12,9 +12,60 @@ This skill bootstraps a fresh Ansible Automation Platform instance and then laun
 This skill extends `/aap-bootstrap` with one additional step: after bootstrap completes it launches `Setup - AAP - CAC` in AAP and monitors the job until completion.
 
 The full sequence:
-1. Bootstrap AAP (Hub creds, Vault cred, project, job template)
-2. Launch `Setup - AAP - CAC` from AAP
-3. Monitor and report job status
+1. Preflight — verify local prerequisites and check AAP bootstrap state
+2. Bootstrap AAP if needed (Hub creds, Vault cred, project, job template)
+3. Launch `Setup - AAP - CAC` from AAP
+4. Monitor and report job status
+
+## Preflight Check — Part 1: Local Prerequisites
+
+Before doing anything else, verify local prerequisites are in place:
+
+```bash
+# ansible.cfg with Hub token
+grep -q "galaxy_server.rh_certified" ~/.ansible/ansible.cfg 2>/dev/null && \
+  grep -v "PASTE_YOUR_TOKEN_HERE" ~/.ansible/ansible.cfg | grep -q "token=" && \
+  echo "✅ ansible.cfg" || echo "❌ ansible.cfg"
+
+# secrets2
+test -s ~/.ansible/secrets2 && echo "✅ secrets2" || echo "❌ secrets2"
+
+# collections
+test -d ./collections/ansible_collections/ansible/platform && \
+  echo "✅ ansible.platform" || echo "❌ ansible.platform"
+
+test -d ./collections/ansible_collections/ansible/controller && \
+  echo "✅ ansible.controller" || echo "❌ ansible.controller"
+```
+
+If any check fails, stop immediately:
+
+```
+❌ Prerequisites missing: <list each failing item>
+
+Run /aap-first-time to set up these prerequisites before continuing.
+```
+
+## Preflight Check — Part 2: AAP Bootstrap State
+
+Resolve AAP credentials using the same priority order as `/aap-bootstrap` (env vars → ansible.cfg → prompt). Then check whether AAP has already been bootstrapped:
+
+```bash
+# Check for project
+PROJECT_COUNT=$(curl -s -k \
+  -u admin:$CONTROLLER_PASSWORD \
+  "$CONTROLLER_HOST/api/controller/v2/projects/?name=aap.as.code" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+
+# Check for job template
+JT_COUNT=$(curl -s -k \
+  -u admin:$CONTROLLER_PASSWORD \
+  "$CONTROLLER_HOST/api/controller/v2/job_templates/?name=Setup+-+AAP+-+CAC" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
+```
+
+- If both exist (`PROJECT_COUNT >= 1` and `JT_COUNT >= 1`): tell the user "AAP is already bootstrapped — skipping to job launch" and jump directly to Step 7.
+- If either is missing: proceed through Steps 1–6 to run the bootstrap first.
 
 ## AAP API Paths (2.5+)
 
