@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - `/aap-bootstrap` now runs a preflight check before starting — fails fast with a clear message and directs user to `/aap-first-time` if ansible.cfg, secrets2, or collections are missing (closes #5)
+- `/aap-bootstrap` Step 6 now verifies each created AAP object via API and prints a structured success summary; vault credential verified by type so any name is supported (closes #9)
 - `/aap-setup-demo` now checks local prerequisites before starting — fails fast with a clear message and directs user to `/aap-first-time` if ansible.cfg, secrets2, or collections are missing (closes #7)
 - `/aap-setup-demo` now checks if AAP is already bootstrapped before running bootstrap steps — skips straight to job launch if project and job template already exist (closes #7)
 

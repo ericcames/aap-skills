@@ -147,11 +147,98 @@ Show the command to the user before running it and ask for confirmation.
 
 ## Step 6 — Report Results
 
-On success:
-- Confirm which AAP objects were created
-- Tell the user AAP is ready
-- Prompt: "Run `/aap-setup-demo` to load demo configuration into AAP"
+### On success
 
-On failure:
+Query the AAP API to verify each object was actually created, then print a structured summary.
+
+Create a session token for the verification queries:
+```bash
+TOKEN_JSON=$(curl -s -k -X POST \
+  -H "Content-Type: application/json" \
+  -u admin:$CONTROLLER_PASSWORD \
+  "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
+  -d '{"description":"bootstrap-verify token","scope":"write"}')
+
+TOKEN=$(echo $TOKEN_JSON | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+TOKEN_ID=$(echo $TOKEN_JSON | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+```
+
+Verify each object and print status:
+```bash
+# Automation Hub - certified
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/credentials/?name=Automation+Hub+-+certified" \
+  | python3 -c "import sys,json; c=json.load(sys.stdin)['count']; print('✅ Automation Hub - certified' if c>0 else '❌ Automation Hub - certified — NOT FOUND')"
+
+# Automation Hub - validated
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/credentials/?name=Automation+Hub+-+validated" \
+  | python3 -c "import sys,json; c=json.load(sys.stdin)['count']; print('✅ Automation Hub - validated' if c>0 else '❌ Automation Hub - validated — NOT FOUND')"
+
+# Vault credential — look up the Vault credential type ID first, then query by it
+VAULT_TYPE_ID=$(curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/credential_types/?name=Vault" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['results'][0]['id'])")
+
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/credentials/?credential_type=$VAULT_TYPE_ID" \
+  | python3 -c "
+import sys,json
+results=json.load(sys.stdin)['results']
+if results:
+    for r in results:
+        print(f'✅ {r[\"name\"]} (vault)')
+else:
+    print('❌ Vault credential — NOT FOUND')"
+
+# Project — also check sync status
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/projects/?name=aap.as.code" \
+  | python3 -c "
+import sys,json
+results=json.load(sys.stdin)['results']
+if results:
+    status=results[0]['status']
+    icon='✅' if status=='successful' else '⚠️'
+    print(f'{icon} aap.as.code (sync: {status})')
+else:
+    print('❌ aap.as.code — NOT FOUND')"
+
+# Job template
+curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/job_templates/?name=Setup+-+AAP+-+CAC" \
+  | python3 -c "import sys,json; c=json.load(sys.stdin)['count']; print('✅ Setup - AAP - CAC' if c>0 else '❌ Setup - AAP - CAC — NOT FOUND')"
+```
+
+Delete the verification token:
+```bash
+curl -s -k -X DELETE \
+  -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/gateway/v1/tokens/$TOKEN_ID/"
+```
+
+Print the final summary in this format:
+```
+Bootstrap complete. Created in AAP:
+
+  Credentials:
+    ✅ Automation Hub - certified
+    ✅ Automation Hub - validated
+    ✅ <vault credential name> (vault)
+
+  Projects:
+    ✅ aap.as.code (sync: successful)
+
+  Job Templates:
+    ✅ Setup - AAP - CAC
+
+Next step: Run /aap-setup-demo to configure your full demo environment,
+or launch "Setup - AAP - CAC" manually in the AAP UI.
+```
+
+If any object shows ❌, tell the user which object is missing and suggest re-running `/aap-bootstrap` to retry.
+
+### On failure
+
 - Show the error from the playbook output
 - Suggest the most likely fix based on the error message
