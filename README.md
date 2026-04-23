@@ -12,7 +12,8 @@ Claude Code skills for bootstrapping and demoing Ansible Automation Platform (AA
 ## Install
 
 ```bash
-npx skillsadd ericcames/aap-skills
+claude plugins marketplace add ericcames/aap-skills
+claude plugins install aap-skills
 ```
 
 ## Prerequisites
