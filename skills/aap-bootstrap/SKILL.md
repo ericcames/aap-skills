@@ -175,9 +175,13 @@ curl -s -k -H "Authorization: Bearer $TOKEN" \
   "$CONTROLLER_HOST/api/controller/v2/credentials/?name=Automation+Hub+-+validated" \
   | python3 -c "import sys,json; c=json.load(sys.stdin)['count']; print('✅ Automation Hub - validated' if c>0 else '❌ Automation Hub - validated — NOT FOUND')"
 
-# Vault credential — query by type, display actual name
+# Vault credential — look up the Vault credential type ID first, then query by it
+VAULT_TYPE_ID=$(curl -s -k -H "Authorization: Bearer $TOKEN" \
+  "$CONTROLLER_HOST/api/controller/v2/credential_types/?name=Vault" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['results'][0]['id'])")
+
 curl -s -k -H "Authorization: Bearer $TOKEN" \
-  "$CONTROLLER_HOST/api/controller/v2/credentials/?kind=vault" \
+  "$CONTROLLER_HOST/api/controller/v2/credentials/?credential_type=$VAULT_TYPE_ID" \
   | python3 -c "
 import sys,json
 results=json.load(sys.stdin)['results']
