@@ -7,6 +7,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - New `/aap-first-time` skill for first-time local prerequisite setup
+
+### Fixed
+- `/aap-first-time` now checks that the user is running from inside the `aap.as.code` repo before proceeding — stops with a clear clone instruction if not (closes #19)
+- README "First time here?" section now includes cloning `aap.as.code` as step 0 (closes #19)
 - `skills/references/aap-as-code-context.md`
 - README: "First time here?" section pointing to `/aap-first-time`, workflow diagram showing three user paths, updated repo structure (closes #17) — shared reference file with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15) — walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
 

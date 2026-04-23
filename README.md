@@ -4,13 +4,23 @@ Claude Code skills for bootstrapping and demoing Ansible Automation Platform (AA
 
 ## First time here?
 
-Run this first:
+**Step 1 — Clone the aap.as.code repo and open it in Claude Code:**
+
+```bash
+git clone https://github.com/ericcames/aap.as.code.git
+cd aap.as.code
+claude .
+```
+
+The skills run playbooks from this repo and install collections into it — you must run them from inside this directory.
+
+**Step 2 — Install the skills** (see [Install](#install) below), then run:
 
 ```
 /aap-first-time
 ```
 
-It walks you through every prerequisite interactively and validates each one before continuing. Takes about 10 minutes once.
+It walks you through every remaining prerequisite interactively and validates each one before continuing. Takes about 10 minutes once.
 
 Already set up? Skip to [Install](#install).
 

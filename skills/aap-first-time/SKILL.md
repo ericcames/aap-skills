@@ -31,6 +31,25 @@ We'll set up:
 After this, you'll be ready to run /aap-bootstrap or /aap-setup-demo.
 ```
 
+Before proceeding, verify the user is running from inside the `aap.as.code` repo:
+
+```bash
+test -f playbooks/bootstrap_dev.yml && echo "✅ In aap.as.code directory" || echo "❌ Wrong directory"
+```
+
+If the check fails, stop and tell the user:
+
+```
+❌ You must run this skill from inside the aap.as.code repo.
+
+Clone it first:
+  git clone https://github.com/ericcames/aap.as.code.git
+  cd aap.as.code
+  claude .
+
+Then re-run /aap-first-time.
+```
+
 ## Step 1 — Check What Already Exists
 
 Before doing anything, audit current state:
