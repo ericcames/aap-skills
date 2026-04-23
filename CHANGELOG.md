@@ -8,6 +8,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - New `/aap-first-time` skill for first-time local prerequisite setup — walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
 
+### Changed
+- `/aap-bootstrap` now runs a preflight check before starting — fails fast with a clear message and directs user to `/aap-first-time` if ansible.cfg, secrets2, or collections are missing (closes #5)
+
 ## [1.0.1] - 2026-04-23
 
 ### Fixed
