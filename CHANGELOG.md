@@ -7,7 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - New `/aap-first-time` skill for first-time local prerequisite setup
-- `skills/references/aap-as-code-context.md` — shared reference file with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15) — walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
+- `skills/references/aap-as-code-context.md`
+- README: "First time here?" section pointing to `/aap-first-time`, workflow diagram showing three user paths, updated repo structure (closes #17) — shared reference file with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15) — walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
 
 ### Changed
 - `/aap-bootstrap` Step 5 now includes idempotency guidance — `ok` results mean an object already exists and is correct, not a warning; re-running after a partial failure is safe (closes #11)
