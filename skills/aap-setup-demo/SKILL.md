@@ -88,6 +88,39 @@ Follow all steps from the `/aap-bootstrap` skill exactly (credential resolution,
 
 Do not proceed to Step 7 until the bootstrap playbook exits successfully.
 
+## Audience Selection
+
+Before launching the job, ask the presenter:
+
+> "Who is your audience today?"
+> 1. Technical (architect / engineer)
+> 2. Management (IT director / VP)
+> 3. Mixed room
+
+Based on their answer, provide the appropriate narration track to use while the job runs:
+
+### Technical track
+Emphasize:
+- **Declarative config** — the entire AAP environment is defined as code in Git; no clicking through the UI
+- **Idempotency** — run this playbook ten times and you get the same result every time
+- **Dependency ordering** — the `infra.aap_configuration.dispatch` role creates objects in the correct order automatically (orgs before projects, credentials before templates)
+- **GitOps pattern** — any change to the environment goes through a pull request; the Git history is your audit trail
+- **Version control** — roll back the entire AAP configuration with a `git revert`
+
+### Management track
+Emphasize:
+- **Time savings** — what used to take hours of clicking through the UI now takes minutes
+- **Consistency** — every environment is built exactly the same way, every time; no "it works on my AAP" problems
+- **No manual errors** — humans don't typo YAML; the config is reviewed in Git before it's applied
+- **Self-service** — once this is set up, the team can provision new demo environments without waiting on anyone
+- **Audit trail** — every change is tracked in Git with who made it and why
+
+### Mixed room
+Lead with outcome, follow with one technical detail, close with business impact:
+- **Open**: "Watch how fast we can stand up a fully configured AAP environment from scratch."
+- **Middle**: "Everything you're seeing get created is defined as code in a Git repo — it's not a script, it's a declaration of what the environment should look like."
+- **Close**: "When this job finishes, your team can do this themselves in minutes instead of spending hours in the UI — and it'll be identical every time."
+
 ## Step 7 — Launch Setup - AAP - CAC
 
 After a successful bootstrap, launch the job template via the AAP API.
