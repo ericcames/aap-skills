@@ -153,19 +153,14 @@ Query the AAP API to verify each object was actually created, then print a struc
 
 Create a session token for the verification queries:
 ```bash
-TOKEN=$(curl -s -k -X POST \
+TOKEN_JSON=$(curl -s -k -X POST \
   -H "Content-Type: application/json" \
   -u admin:$CONTROLLER_PASSWORD \
   "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
-  -d '{"description":"bootstrap-verify token","scope":"write"}' \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['token'])")
+  -d '{"description":"bootstrap-verify token","scope":"write"}')
 
-TOKEN_ID=$(curl -s -k -X POST \
-  -H "Content-Type: application/json" \
-  -u admin:$CONTROLLER_PASSWORD \
-  "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
-  -d '{"description":"bootstrap-verify token","scope":"write"}' \
-  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['id'])")
+TOKEN=$(echo $TOKEN_JSON | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+TOKEN_ID=$(echo $TOKEN_JSON | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
 ```
 
 Verify each object and print status:
