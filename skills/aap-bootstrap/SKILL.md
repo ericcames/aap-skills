@@ -10,11 +10,12 @@ This skill bootstraps a fresh Ansible Automation Platform instance provisioned f
 ## Overview
 
 A bootstrap provisions these objects on a fresh AAP instance:
-- Automation Hub certified and validated credentials
-- Galaxy credentials associated with the Default Organization
+- `Automation Hub - certified` and `Automation Hub - validated` credentials (assigned to the Default Organization as its galaxy credentials)
 - Vault credential
 - `aap.as.code` project (synced from `main`)
 - `Setup - AAP - CAC` job template
+
+See [`skills/references/aap-as-code-context.md`](../references/aap-as-code-context.md) for the exact object names and API endpoints used.
 
 When bootstrap completes the AAP instance is ready but no demo has been configured yet. To configure the demo, run `/aap-setup-demo`.
 
@@ -167,7 +168,7 @@ Create a session token for the verification queries:
 ```bash
 TOKEN_JSON=$(curl -s -k -X POST \
   -H "Content-Type: application/json" \
-  -u admin:$CONTROLLER_PASSWORD \
+  -u $CONTROLLER_USERNAME:$CONTROLLER_PASSWORD \
   "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
   -d '{"description":"bootstrap-verify token","scope":"write"}')
 

@@ -288,20 +288,7 @@ Direct the user to create one:
 > "Copy the example vault from https://github.com/ericcames/sourcefiles/blob/main/vault_example.yml,
 > fill in your values, encrypt it with ansible-vault, and host it in a public GitHub repo at a raw URL."
 
-Key vault variables to fill in:
-
-| Key | Purpose |
-|-----|---------|
-| `default_passwd` | Team default password; also used by the F5 demo |
-| `redhat_username` | RH service account username |
-| `redhat_passwd` | RH service account password |
-| `ssh_priv_key` | Your laptop private key (gives access to what you build) |
-| `admin_password` | Admin password for network gear (F5, Palo Alto, Infoblox) |
-| `red_hat_auto_hub_token` | Automation Hub API token |
-| `ddw_username` / `ddw_password` | Windows server credentials |
-| `snow_url` / `snow_username` / `servicenow_passwd` | ServiceNow credentials |
-
-Full variable reference is in the [aap.as.code README](https://github.com/ericcames/aap.as.code#readme).
+Full vault variable reference (keys, purposes, and example file link) is in [`skills/references/aap-as-code-context.md`](../references/aap-as-code-context.md#vault-variable-reference).
 
 Once they have a URL, validate it as described above.
 

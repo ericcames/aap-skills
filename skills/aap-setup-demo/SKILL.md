@@ -53,13 +53,13 @@ Resolve AAP credentials using the same priority order as `/aap-bootstrap` (env v
 ```bash
 # Check for project
 PROJECT_COUNT=$(curl -s -k \
-  -u admin:$CONTROLLER_PASSWORD \
+  -u $CONTROLLER_USERNAME:$CONTROLLER_PASSWORD \
   "$CONTROLLER_HOST/api/controller/v2/projects/?name=aap.as.code" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
 
 # Check for job template
 JT_COUNT=$(curl -s -k \
-  -u admin:$CONTROLLER_PASSWORD \
+  -u $CONTROLLER_USERNAME:$CONTROLLER_PASSWORD \
   "$CONTROLLER_HOST/api/controller/v2/job_templates/?name=Setup+-+AAP+-+CAC" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['count'])")
 ```
@@ -69,18 +69,13 @@ JT_COUNT=$(curl -s -k \
 
 ## AAP API Paths (2.5+)
 
-AAP 2.5+ uses a gateway architecture. Always use these base paths:
+AAP 2.5+ uses a gateway architecture. Full endpoint list is in [`skills/references/aap-as-code-context.md`](../references/aap-as-code-context.md#aap-api-endpoints-25). This skill uses:
 
 | Purpose | Base path |
 |---------|-----------|
 | Token create/delete | `$CONTROLLER_HOST/api/gateway/v1/tokens/` |
 | Job templates | `$CONTROLLER_HOST/api/controller/v2/job_templates/` |
 | Jobs | `$CONTROLLER_HOST/api/controller/v2/jobs/` |
-
-Verify the API layout first if unsure:
-```bash
-curl -s -k "$CONTROLLER_HOST/api/" | python3 -m json.tool
-```
 
 ## Steps 1–6: Bootstrap First
 
@@ -129,7 +124,7 @@ First, create a session token via the gateway:
 ```bash
 TOKEN_JSON=$(curl -s -k -X POST \
   -H "Content-Type: application/json" \
-  -u admin:$CONTROLLER_PASSWORD \
+  -u $CONTROLLER_USERNAME:$CONTROLLER_PASSWORD \
   "$CONTROLLER_HOST/api/gateway/v1/tokens/" \
   -d '{"description":"setup-demo token","scope":"write"}')
 

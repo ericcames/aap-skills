@@ -65,11 +65,14 @@ Run `/aap-first-time` to set these up interactively, or configure manually:
 - `~/.ansible/secrets2` containing your vault password (single line)
 - Collections installed locally:
 
-```bash
-ANSIBLE_CONFIG=~/.ansible/ansible.cfg \
-  ansible-galaxy collection install ansible.platform ansible.controller \
-  -p ./collections
-```
+  ```bash
+  ANSIBLE_CONFIG=~/.ansible/ansible.cfg \
+    ansible-galaxy collection install ansible.platform ansible.controller \
+    -p ./collections
+  ```
+
+- An RSA SSH key pair at `~/.ssh/id_rsa` with the public key hosted at a public HTTPS raw URL (AWS requires RSA)
+- A vault file hosted at a public HTTPS raw URL with the variables listed in [`skills/references/aap-as-code-context.md`](skills/references/aap-as-code-context.md)
 
 ## Repo Structure
 
