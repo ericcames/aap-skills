@@ -6,13 +6,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## Unreleased
 
 ### Added
-- New `/aap-first-time` skill for first-time local prerequisite setup
-
-### Fixed
-- `/aap-first-time` now checks that the user is running from inside the `aap.as.code` repo before proceeding — stops with a clear clone instruction if not (closes #19)
-- README "First time here?" section now includes cloning `aap.as.code` as step 0 (closes #19)
-- `skills/references/aap-as-code-context.md`
-- README: "First time here?" section pointing to `/aap-first-time`, workflow diagram showing three user paths, updated repo structure (closes #17) — shared reference file with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15) — walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
+- New `/aap-first-time` skill walks through ansible.cfg, secrets2, collections, SSH key pair, and vault file interactively (closes #3)
+- New shared reference file `skills/references/aap-as-code-context.md` with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15)
 
 ### Changed
 - `/aap-bootstrap` Step 5 now includes idempotency guidance — `ok` results mean an object already exists and is correct, not a warning; re-running after a partial failure is safe (closes #11)
@@ -21,6 +16,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `/aap-setup-demo` now asks for audience (Technical / Management / Mixed) before launching and provides a tailored narration track for each (closes #13)
 - `/aap-setup-demo` now checks local prerequisites before starting — fails fast with a clear message and directs user to `/aap-first-time` if ansible.cfg, secrets2, or collections are missing (closes #7)
 - `/aap-setup-demo` now checks if AAP is already bootstrapped before running bootstrap steps — skips straight to job launch if project and job template already exist (closes #7)
+- README: added "First time here?" section pointing to `/aap-first-time`, workflow diagram showing three user paths, updated repo structure (closes #17)
+
+### Fixed
+- `/aap-first-time` now checks that the user is running from inside the `aap.as.code` repo before proceeding — stops with a clear clone instruction if not (closes #19)
+- README "First time here?" section now includes cloning `aap.as.code` as step 0 (closes #19)
 
 ## [1.0.1] - 2026-04-23
 

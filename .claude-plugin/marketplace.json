@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Claude Code skills for bootstrapping and demoing Ansible Automation Platform instances from RHDP",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "plugins": [
     {
