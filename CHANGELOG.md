@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New shared reference file `skills/references/aap-as-code-context.md` with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15)
 
 ### Changed
+- `/aap-first-time` Step 2 now writes `~/.ansible/ansible.cfg` directly after the user provides their Hub token — no manual file creation required; template updated to include `[galaxy]` and `[galaxy_server.community]` sections (closes #24)
 - `/aap-first-time` now collects `my_vault` and `my_windows_catalog_short_description` and writes all four user-specific vars to `inventories/rhdp-sample-demo/group_vars/all.yml` (closes #25)
 - `/aap-bootstrap` and `/aap-setup-demo` now check `inventories/rhdp-sample-demo/group_vars/all.yml` at startup and halt if `my_vault`, `my_remote_vault`, or `my_remote_ssh_pub_key` are empty (closes #25)
 - `/aap-bootstrap` Step 4 now reads user-specific vars from `rhdp-sample-demo/group_vars/all.yml` instead of hardcoding them (closes #25)
