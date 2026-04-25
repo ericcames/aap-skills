@@ -38,6 +38,20 @@ test -d ./collections/ansible_collections/ansible/platform && \
 
 test -d ./collections/ansible_collections/ansible/controller && \
   echo "✅ ansible.controller" || echo "❌ ansible.controller"
+
+# all.yml user vars
+python3 -c "
+import yaml, sys
+try:
+    d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+    missing = [k for k in ['my_vault','my_remote_vault','my_remote_ssh_pub_key'] if not d.get(k,'')]
+    if missing:
+        print('❌ all.yml missing: ' + ', '.join(missing))
+    else:
+        print('✅ all.yml user vars')
+except FileNotFoundError:
+    print('❌ all.yml — inventories/rhdp-sample-demo/group_vars/all.yml not found')
+"
 ```
 
 If any check fails, stop immediately and tell the user:
@@ -103,6 +117,19 @@ Read from `~/.ansible/secrets2` (single line, trimmed). If not found, ask the us
 
 ## Step 4 — Generate the Inventory
 
+First, read the user-specific vars from `inventories/rhdp-sample-demo/group_vars/all.yml`:
+
+```bash
+python3 -c "
+import yaml
+d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+for k in ['my_vault','my_windows_catalog_short_description','my_remote_vault','my_remote_ssh_pub_key']:
+    print(k + '=' + d.get(k,''))
+"
+```
+
+Use those values when writing the generated `all.yml` below.
+
 Create the inventory directory and vars file:
 
 ```
@@ -130,9 +157,13 @@ aap_validate_certs: false
 hub_token: "{{ lookup('ini', 'token section=galaxy_server.rh_certified file=~/.ansible/ansible.cfg') }}"
 vault_password: "{{ lookup('ansible.builtin.file', '~/.ansible/secrets2') | trim }}"
 hub_auth_url: "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token"
-my_remote_vault: "https://raw.githubusercontent.com/ericcames/sourcefiles/refs/heads/main/vault_ames.yml"
-my_remote_ssh_pub_key: "https://raw.githubusercontent.com/ericcames/sourcefiles/refs/heads/main/id_rsa.pub"
+my_vault: "<my_vault from rhdp-sample-demo all.yml>"
+my_windows_catalog_short_description: "<my_windows_catalog_short_description from rhdp-sample-demo all.yml>"
+my_remote_vault: "<my_remote_vault from rhdp-sample-demo all.yml>"
+my_remote_ssh_pub_key: "<my_remote_ssh_pub_key from rhdp-sample-demo all.yml>"
 ```
+
+Substitute the actual values read from `rhdp-sample-demo/group_vars/all.yml` — do not copy the placeholder text literally.
 
 Remind the user that `group_vars/all.yml` contains no secrets — all sensitive values are resolved at runtime via lookups.
 

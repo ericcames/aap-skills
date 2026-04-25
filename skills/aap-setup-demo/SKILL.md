@@ -36,6 +36,20 @@ test -d ./collections/ansible_collections/ansible/platform && \
 
 test -d ./collections/ansible_collections/ansible/controller && \
   echo "✅ ansible.controller" || echo "❌ ansible.controller"
+
+# all.yml user vars
+python3 -c "
+import yaml, sys
+try:
+    d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+    missing = [k for k in ['my_vault','my_remote_vault','my_remote_ssh_pub_key'] if not d.get(k,'')]
+    if missing:
+        print('❌ all.yml missing: ' + ', '.join(missing))
+    else:
+        print('✅ all.yml user vars')
+except FileNotFoundError:
+    print('❌ all.yml — inventories/rhdp-sample-demo/group_vars/all.yml not found')
+"
 ```
 
 If any check fails, stop immediately:

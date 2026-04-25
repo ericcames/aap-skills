@@ -10,6 +10,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New shared reference file `skills/references/aap-as-code-context.md` with AAP object names, API endpoints, vault URL patterns, and full vault variable table (closes #15)
 
 ### Changed
+- `/aap-first-time` now collects `my_vault` and `my_windows_catalog_short_description` and writes all four user-specific vars to `inventories/rhdp-sample-demo/group_vars/all.yml` (closes #25)
+- `/aap-bootstrap` and `/aap-setup-demo` now check `inventories/rhdp-sample-demo/group_vars/all.yml` at startup and halt if `my_vault`, `my_remote_vault`, or `my_remote_ssh_pub_key` are empty (closes #25)
+- `/aap-bootstrap` Step 4 now reads user-specific vars from `rhdp-sample-demo/group_vars/all.yml` instead of hardcoding them (closes #25)
 - `/aap-bootstrap` Step 5 now includes idempotency guidance — `ok` results mean an object already exists and is correct, not a warning; re-running after a partial failure is safe (closes #11)
 - `/aap-bootstrap` now runs a preflight check before starting — fails fast with a clear message and directs user to `/aap-first-time` if ansible.cfg, secrets2, or collections are missing (closes #5)
 - `/aap-bootstrap` Step 6 now verifies each created AAP object via API and prints a structured success summary; vault credential verified by type so any name is supported (closes #9)

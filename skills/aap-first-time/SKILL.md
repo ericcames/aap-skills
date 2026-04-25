@@ -66,6 +66,18 @@ ls ./collections/ansible_collections/ansible/ 2>/dev/null || echo "MISSING"
 
 # SSH key
 test -f ~/.ssh/id_rsa && echo "EXISTS" || echo "MISSING"
+
+# all.yml user vars
+python3 -c "
+import yaml, sys
+try:
+    d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+    for k in ['my_vault','my_remote_vault','my_remote_ssh_pub_key','my_windows_catalog_short_description']:
+        v = d.get(k,'')
+        print(('EXISTS: ' if v else 'MISSING: ') + k + (': ' + v if v else ''))
+except FileNotFoundError:
+    print('MISSING: inventories/rhdp-sample-demo/group_vars/all.yml')
+"
 ```
 
 For each item found, validate it has the right content:
@@ -73,6 +85,7 @@ For each item found, validate it has the right content:
 - **secrets2**: must be non-empty
 - **collections**: must include both `platform` and `controller` subdirectories
 - **SSH key**: must be RSA format
+- **all.yml vars**: `my_vault`, `my_remote_vault`, `my_remote_ssh_pub_key` must be non-empty
 
 Skip any section below where the item already exists and is valid. Tell the user what was found before proceeding:
 
@@ -81,6 +94,7 @@ Skip any section below where the item already exists and is valid. Tell the user
 ✅ ~/.ansible/secrets2 — found, non-empty
 ❌ ansible.platform collection — MISSING
 ❌ ~/.ssh/id_rsa — MISSING
+❌ my_vault — MISSING
 ```
 
 ## Step 2 — ansible.cfg Setup
@@ -292,7 +306,76 @@ Full vault variable reference (keys, purposes, and example file link) is in [`sk
 
 Once they have a URL, validate it as described above.
 
-## Step 7 — Final Validation
+## Step 7 — User-Specific Vars
+
+Write the user's identity vars to `inventories/rhdp-sample-demo/group_vars/all.yml`. These are used by `/aap-bootstrap` and `/aap-setup-demo` so you don't have to re-enter them for each environment.
+
+Skip any var that already has a non-empty value in `all.yml` (identified in Step 1).
+
+### 7a. Vault credential name
+
+If `my_vault` is missing, ask:
+> "What name should your vault credential have in AAP? This is used as both the credential name and the `my_vault` extra var on your job template. (e.g. `Eric Ames`)"
+
+Write the value to `my_vault` in `all.yml`.
+
+### 7b. Windows catalog description
+
+If `my_windows_catalog_short_description` is missing, ask:
+> "What is your ServiceNow Windows catalog item short description? Press Enter to accept the default."
+> Default: `Ames AAP Windows AWS Daily Demo`
+
+Write the value (or default) to `my_windows_catalog_short_description` in `all.yml`.
+
+### 7c. Remote vault and SSH key URLs
+
+If `my_remote_vault` or `my_remote_ssh_pub_key` are missing in `all.yml`, write the URLs collected and validated in Steps 5 and 6 to `all.yml` now.
+
+### 7d. Write all.yml
+
+Use Python to update `inventories/rhdp-sample-demo/group_vars/all.yml` in place, preserving all other keys and comments:
+
+```bash
+python3 << 'EOF'
+import re
+
+path = 'inventories/rhdp-sample-demo/group_vars/all.yml'
+updates = {
+    'my_vault': '<value from 7a>',
+    'my_windows_catalog_short_description': '<value from 7b>',
+    'my_remote_vault': '<url from step 6>',
+    'my_remote_ssh_pub_key': '<url from step 5>',
+}
+
+with open(path) as f:
+    content = f.read()
+
+for key, value in updates.items():
+    # Replace existing key
+    pattern = rf'^({key}:\s*).*$'
+    replacement = f'{key}: "{value}"'
+    new_content, n = re.subn(pattern, replacement, content, flags=re.MULTILINE)
+    if n == 0:
+        # Append if key not present
+        new_content = content.rstrip('\n') + f'\n{key}: "{value}"\n'
+    content = new_content
+
+with open(path, 'w') as f:
+    f.write(content)
+
+print('✅ all.yml updated')
+EOF
+```
+
+After writing, confirm:
+```
+✅ my_vault: <value>
+✅ my_windows_catalog_short_description: <value>
+✅ my_remote_vault: <url>
+✅ my_remote_ssh_pub_key: <url>
+```
+
+## Step 8 — Final Validation
 
 Run a complete preflight check and print green/red status for every item:
 
@@ -323,10 +406,14 @@ test -f ~/.ssh/id_rsa && \
   echo "❌ ~/.ssh/id_rsa — MISSING"
 ```
 
-Also confirm the results from Steps 5 and 6:
+Also confirm the results from Steps 5–7:
 ```
 ✅ SSH key pair — local key matches hosted public key
 ✅ Vault URL — accessible, returns YAML
+✅ my_vault — set
+✅ my_remote_vault — set
+✅ my_remote_ssh_pub_key — set
+✅ my_windows_catalog_short_description — set
 ```
 
 If everything is green, print:
