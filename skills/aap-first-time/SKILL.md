@@ -27,6 +27,7 @@ We'll set up:
   3. Required Ansible collections (ansible.platform, ansible.controller)
   4. Your SSH key pair (local key + public key hosted at a URL)
   5. Your vault file (secrets the demo uses at runtime)
+  6. Your identity defaults (~/.ansible/aap_defaults.yml)
 
 After this, you'll be ready to run /aap-bootstrap or /aap-setup-demo.
 ```
@@ -67,16 +68,17 @@ ls ./collections/ansible_collections/ansible/ 2>/dev/null || echo "MISSING"
 # SSH key
 test -f ~/.ssh/id_rsa && echo "EXISTS" || echo "MISSING"
 
-# all.yml user vars
+# user defaults
 python3 -c "
-import yaml, sys
+import yaml, os, sys
+path = os.path.expanduser('~/.ansible/aap_defaults.yml')
 try:
-    d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+    d = yaml.safe_load(open(path)) or {}
     for k in ['my_vault','my_remote_vault','my_remote_ssh_pub_key','my_windows_catalog_short_description']:
         v = d.get(k,'')
-        print(('EXISTS: ' if v else 'MISSING: ') + k + (': ' + v if v else ''))
+        print(('EXISTS: ' if v else 'MISSING: ') + k + (': ' + str(v) if v else ''))
 except FileNotFoundError:
-    print('MISSING: inventories/rhdp-sample-demo/group_vars/all.yml')
+    print('MISSING: ~/.ansible/aap_defaults.yml')
 "
 ```
 
@@ -85,7 +87,7 @@ For each item found, validate it has the right content:
 - **secrets2**: must be non-empty
 - **collections**: must include both `platform` and `controller` subdirectories
 - **SSH key**: must be RSA format
-- **all.yml vars**: `my_vault`, `my_remote_vault`, `my_remote_ssh_pub_key` must be non-empty
+- **aap_defaults.yml**: `my_vault`, `my_remote_vault`, `my_remote_ssh_pub_key` must be non-empty
 
 Skip any section below where the item already exists and is valid. Tell the user what was found before proceeding:
 
@@ -308,38 +310,35 @@ Once they have a URL, validate it as described above.
 
 ## Step 7 — User-Specific Vars
 
-Write the user's identity vars to `inventories/rhdp-sample-demo/group_vars/all.yml`. These are used by `/aap-bootstrap` and `/aap-setup-demo` so you don't have to re-enter them for each environment.
+Write the user's identity vars to `~/.ansible/aap_defaults.yml`. This file persists across sessions and environments — `/aap-bootstrap` reads it automatically when generating a new inventory so these values never need to be re-entered.
 
-Skip any var that already has a non-empty value in `all.yml` (identified in Step 1).
+Skip any var that already has a non-empty value in `~/.ansible/aap_defaults.yml` (identified in Step 1).
 
 ### 7a. Vault credential name
 
 If `my_vault` is missing, ask:
 > "What name should your vault credential have in AAP? This is used as both the credential name and the `my_vault` extra var on your job template. (e.g. `Eric Ames`)"
 
-Write the value to `my_vault` in `all.yml`.
-
 ### 7b. Windows catalog description
 
 If `my_windows_catalog_short_description` is missing, ask:
 > "What is your ServiceNow Windows catalog item short description? Press Enter to accept the default."
-> Default: `Ames AAP Windows AWS Daily Demo`
-
-Write the value (or default) to `my_windows_catalog_short_description` in `all.yml`.
+> Default: `AAP Windows AWS Daily Demo`
 
 ### 7c. Remote vault and SSH key URLs
 
-If `my_remote_vault` or `my_remote_ssh_pub_key` are missing in `all.yml`, write the URLs collected and validated in Steps 5 and 6 to `all.yml` now.
+If `my_remote_vault` or `my_remote_ssh_pub_key` are missing, use the URLs collected and validated in Steps 5 and 6.
 
-### 7d. Write all.yml
+### 7d. Write ~/.ansible/aap_defaults.yml
 
-Use Python to update `inventories/rhdp-sample-demo/group_vars/all.yml` in place, preserving all other keys and comments:
+Use Python to write (or update) `~/.ansible/aap_defaults.yml`, merging with any values already present:
 
 ```bash
 python3 << 'EOF'
-import re
+import yaml, os
 
-path = 'inventories/rhdp-sample-demo/group_vars/all.yml'
+path = os.path.expanduser('~/.ansible/aap_defaults.yml')
+
 updates = {
     'my_vault': '<value from 7a>',
     'my_windows_catalog_short_description': '<value from 7b>',
@@ -347,23 +346,17 @@ updates = {
     'my_remote_ssh_pub_key': '<url from step 5>',
 }
 
-with open(path) as f:
-    content = f.read()
+try:
+    existing = yaml.safe_load(open(path)) or {}
+except FileNotFoundError:
+    existing = {}
 
-for key, value in updates.items():
-    # Replace existing key
-    pattern = rf'^({key}:\s*).*$'
-    replacement = f'{key}: "{value}"'
-    new_content, n = re.subn(pattern, replacement, content, flags=re.MULTILINE)
-    if n == 0:
-        # Append if key not present
-        new_content = content.rstrip('\n') + f'\n{key}: "{value}"\n'
-    content = new_content
+existing.update({k: v for k, v in updates.items() if v})
 
 with open(path, 'w') as f:
-    f.write(content)
+    yaml.dump(existing, f, default_flow_style=False)
 
-print('✅ all.yml updated')
+print('✅ ~/.ansible/aap_defaults.yml written')
 EOF
 ```
 
@@ -400,10 +393,15 @@ test -d ./collections/ansible_collections/ansible/controller && \
   echo "✅ ansible.controller collection — installed" || \
   echo "❌ ansible.controller collection — MISSING"
 
-# SSH key
+# SSH key (check id_rsa; if not found, the user may have a key at a different path)
 test -f ~/.ssh/id_rsa && \
   echo "✅ ~/.ssh/id_rsa — found" || \
-  echo "❌ ~/.ssh/id_rsa — MISSING"
+  echo "⚠️  ~/.ssh/id_rsa — not found (confirm a valid RSA key exists at the path used in Step 5)"
+
+# user defaults
+test -s ~/.ansible/aap_defaults.yml && \
+  echo "✅ ~/.ansible/aap_defaults.yml — found, non-empty" || \
+  echo "❌ ~/.ansible/aap_defaults.yml — missing or empty"
 ```
 
 Also confirm the results from Steps 5–7:

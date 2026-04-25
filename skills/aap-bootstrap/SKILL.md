@@ -39,18 +39,19 @@ test -d ./collections/ansible_collections/ansible/platform && \
 test -d ./collections/ansible_collections/ansible/controller && \
   echo "✅ ansible.controller" || echo "❌ ansible.controller"
 
-# all.yml user vars
+# user defaults
 python3 -c "
-import yaml, sys
+import yaml, os
+path = os.path.expanduser('~/.ansible/aap_defaults.yml')
 try:
-    d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+    d = yaml.safe_load(open(path)) or {}
     missing = [k for k in ['my_vault','my_remote_vault','my_remote_ssh_pub_key'] if not d.get(k,'')]
     if missing:
-        print('❌ all.yml missing: ' + ', '.join(missing))
+        print('❌ ~/.ansible/aap_defaults.yml missing: ' + ', '.join(missing))
     else:
-        print('✅ all.yml user vars')
+        print('✅ ~/.ansible/aap_defaults.yml — user defaults present')
 except FileNotFoundError:
-    print('❌ all.yml — inventories/rhdp-sample-demo/group_vars/all.yml not found')
+    print('❌ ~/.ansible/aap_defaults.yml — not found. Run /aap-first-time.')
 "
 ```
 
@@ -117,14 +118,14 @@ Read from `~/.ansible/secrets2` (single line, trimmed). If not found, ask the us
 
 ## Step 4 — Generate the Inventory
 
-First, read the user-specific vars from `inventories/rhdp-sample-demo/group_vars/all.yml`:
+First, read the user-specific vars from `~/.ansible/aap_defaults.yml`:
 
 ```bash
 python3 -c "
-import yaml
-d = yaml.safe_load(open('inventories/rhdp-sample-demo/group_vars/all.yml'))
+import yaml, os
+d = yaml.safe_load(open(os.path.expanduser('~/.ansible/aap_defaults.yml'))) or {}
 for k in ['my_vault','my_windows_catalog_short_description','my_remote_vault','my_remote_ssh_pub_key']:
-    print(k + '=' + d.get(k,''))
+    print(k + '=' + str(d.get(k,'')))
 "
 ```
 
