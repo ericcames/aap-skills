@@ -103,29 +103,42 @@ Skip any section below where the item already exists and is valid. Tell the user
 
 Skip this step if ansible.cfg already exists and contains a valid Hub token.
 
-If missing, show the user exactly what it should look like and ask them to create it:
+If missing or invalid, prompt:
+> "Paste your Automation Hub API token. Get it at: https://console.redhat.com/ansible/automation-hub/token"
+
+Once the user provides the token, write `~/.ansible/ansible.cfg` directly using the Write tool with this exact template, substituting the token into both `rh_certified` and `rh_validated`:
 
 ```ini
 [defaults]
 collections_paths = ./collections
 
+[galaxy]
+server_list = rh_certified, rh_validated, community
+
 [galaxy_server.rh_certified]
 url=https://console.redhat.com/api/automation-hub/content/published/
 auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-token=PASTE_YOUR_TOKEN_HERE
+token=<USER_TOKEN>
 
 [galaxy_server.rh_validated]
 url=https://console.redhat.com/api/automation-hub/content/validated/
 auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-token=PASTE_YOUR_TOKEN_HERE
+token=<USER_TOKEN>
+
+[galaxy_server.community]
+url=https://galaxy.ansible.com/
 ```
 
-Then prompt:
-> "Paste your Automation Hub API token. Get it at: https://console.redhat.com/ansible/automation-hub/token"
+After writing, set permissions and validate:
 
-Write the token into both `[galaxy_server.rh_certified]` and `[galaxy_server.rh_validated]` token fields. Validate the written value is not the placeholder string `PASTE_YOUR_TOKEN_HERE`.
+```bash
+chmod 600 ~/.ansible/ansible.cfg
+grep -v "PASTE_YOUR_TOKEN_HERE" ~/.ansible/ansible.cfg | grep -q "token=" && \
+  echo "✅ ~/.ansible/ansible.cfg written with Hub token" || \
+  echo "❌ token not set correctly"
+```
 
-If ansible.cfg exists but the token is missing or placeholder, ask the user to paste their token and update it in place.
+If ansible.cfg exists but the token is missing or placeholder, ask the user to paste their token and rewrite the file using the same template and steps above.
 
 ## Step 3 — secrets2 Setup
 
